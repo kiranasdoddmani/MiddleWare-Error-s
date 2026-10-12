@@ -1,0 +1,209 @@
+MiddleWares:-
+   MiddleWares are act as Intermediate B/w the Request and ResPonse
+
+
+   MiddleWare also Send the response But Usally MiddleWare are not used for Response
+     Middleware is used to process requests before they reach the final route handler
+
+ In ExPress The MiddleWares are Come to Play after Server Receives that Request and Before the ResPonse 
+  is Sent to the Client
+
+  * method-override 
+  * express.static
+  * express.urlencoded
+  * bodyParser     
+  -> These are MiddleWares used in Express
+
+  Using Next() :-
+      next()
+       Will be used When if the One-MiddleWare Fails Then it Passes to Next-MiddleWare
+        next is an Simply it is End of an MiddleWare
+
+        app.use((req,res)=>{
+            console.log("This is My-First MiddleWare");
+            res.send("Hi, I am MiddleWare");
+        })                                          --> this is a MiddleWare But it Send Response but MiddleWare are Not Used for this
+                                                        So We use next();   
+
+      app.use((req,res,next)=>{
+            console.log("This is My-First MiddleWare");
+            next();                        --> next() will execute Routes if not Error in Middleware,
+                                               is used to pass control to the next middleware function or route handler
+        })                                                   
+
+
+
+  ERROR'S :-
+---------------
+   In Express ByDefault it Shown Some Error if any Error Occure'S 
+    These Error Should be in the form of Stack-OverFlow [expressjs.com]
+
+    IMP :-  
+   -------
+     * next() passes control to the next middleware function
+      *  next(err) passes control to Express error-handling middleware
+        
+  // Error Handling in MiddleWare
+
+     app.use((err,req,res,next)=>{
+    let{status,messgae}=err;
+   res.status(status).send(messgae);    
+       })
+
+   These Code Shown an Invalid StatusCode and Invalid message So We Set an Default StatusCode and message
+     let{status=500,messgae="Some Error-Occured"}=err;
+   
+
+    TypeError: Invalid status code: undefined. Status code must be an integer.
+    at ServerResponse.status (C:\Users\KIRANA S DODDAMANI\OneDrive\Desktop\MiddleWare\node_modules\express\lib\response.js:68:11)
+    at C:\Users\KIRANA S DODDAMANI\OneDrive\Desktop\MiddleWare\error.js:28:8
+    at Layer.handleError (C:\Users\KIRANA S DODDAMANI\OneDrive\Desktop\MiddleWare\node_modules\router\lib\layer.js:116:17)
+    at trimPrefix (C:\Users\KIRANA S DODDAMANI\OneDrive\Desktop\MiddleWare\node_modules\router\index.js:340:13)
+    at C:\Users\KIRANA S DODDAMANI\OneDrive\Desktop\MiddleWare\node_modules\router\index.js:297:9
+    at processParams (C:\Users\KIRANA S DODDAMANI\OneDrive\Desktop\MiddleWare\node_modules\router\index.js:582:12)
+    at next (C:\Users\KIRANA S DODDAMANI\OneDrive\Desktop\MiddleWare\node_modules\router\index.js:291:5)
+    at next (C:\Users\KIRANA S DODDAMANI\OneDrive\Desktop\MiddleWare\node_modules\router\lib\route.js:132:14)
+    at Layer.handleRequest (C:\Users\KIRANA S DODDAMANI\OneDrive\Desktop\MiddleWare\node_modules\router\lib\layer.js:165:5)
+    at next (C:\Users\KIRANA S DODDAMANI\OneDrive\Desktop\MiddleWare\node_modules\router\lib\route.js:157:13)      
+
+
+
+    ----------------------------------------
+
+    Imp:-
+       throw new ExpressError(401,"ACCESS DENIED...!");
+        
+        app.use("/api",(req,res,next)=>{
+      let{token}=req.query;
+      if(token=="giveacess"){
+            return next();
+      }
+   throw new ExpressError(401,"ACCESS DENIED...!");
+  })
+
+   app.get("/api",(req,res)=>{
+    res.send("Here is Your Private-Iformation");
+  })
+
+  app.use((err,req,res,next)=>{
+     let{status=500,message="Some Error-Occured"}=err;
+      res.status(status).send(message);
+  })
+
+// See This Default-Message is Only for Other-Routes if in case Error Occured in Routes i.e
+   http://localhost:8080/err
+    o/p:-  Some-Error-Occured
+
+   * /api -> Has particular Error-Message and StatusCode 
+       ExpressError(401,"ACCESS DENIED...!"); 
+
+    * Remaing Routes Have DefaultMessage and Status-Code
+      i.e let{status=500,message="Some Error-Occured"}=err;
+
+
+   
+   http://localhost:8080/api?token=giveacess
+   o/p:-  Private-message
+
+  http://localhost:8080/api?token=wrong
+   o/p:- ACCESS DENIED...!
+
+  -----------------------------------------------------------------------
+     ERROR'S :-
+   ------------
+    NormalError  -> Bydefault Express Will Thorw an Error
+    tryCatch     -> All Route i.e CURD Route are Placed Inside the try{} and Catch() Block
+    AsyncWrap    -> AsyncWrap Means Create a Fuction-method Called AsyncWrap and Inside the AsyncWrap we will Pass the Error
+
+      Syntax :-
+        function AsyncWrap(fn){
+            return function(err,req,res,next){
+                fn(err,req,res,next).catch((err)=>{
+                    next(err);
+                })
+            }
+        } 
+
+        // CREATE operation
+            app.post("/create", AsyncWrap((req, res) => {
+                let { name, age } = req.body;
+
+                res.send(`User Created: ${name}, Age: ${age}`);
+            }));
+
+                         
+
+    // try-Catch
+   app.post("/create", (req, res) => {
+    try {
+        let { name, age } = req.body;
+
+        if (!name || !age) {
+            throw new Error("Name and age are required!");
+        }
+
+        res.send(`User Created: ${name}, Age: ${age}`);
+    } catch (err) {
+       next(err);
+    }
+});
+
+// If Chat is Not Found
+   if(!chat){
+    return new ExpressError(404,"Page is Not Found");
+   }
+
+
+
+next(err) :- find Error-MiddleWare
+
+  app.use((err,req,res.next)=>{
+    let{status=500,message="Some Error-Occured"}=err;
+    res.send(status).send(message);
+  })
+
+ Validation-Error :-
+    Means in curd-Operation Name must be Required,age must be Required,if we not filled those Coloumns and try to Submit the Application 
+           then it Show an Validation-Error 
+
+// Important :-
+     Most of Developers use the AsyncWrap-Method
+
+
+ //----------------------------------------------------------------------------
+
+   Mongoose-Errors's :-
+            In Error Have Object's 
+              Example :- name Means Each_Error have Their Own Name'S
+
+              Like 
+               * Validation-Error
+               * Cast-Error
+
+Example :-
+     app.use((err,req,res,next)=>{
+        console.log(err.name);
+     })        
+
+     app.use((err,req,res,next)=>{
+        if(err.name =="Validation Error"){
+            console.log("Pls Follow Rules);
+        }
+        next(err);
+     })
+
+       -------- or ---------------
+
+    // As a Function   
+     const HandleValidation=(err)=>{
+        console.log("This is Validation Error . Pls Follow Rules");
+        console.log(err.message);
+        return err;
+     };
+
+      app.use((err,req,res,next)=>{
+        if(err.name =="Validation Error"){
+          err= HandleValidation(err);
+        }
+        next(err);
+     });
